@@ -1,4 +1,4 @@
-CPP = g++
+CPP = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 NAME = phonebook
 HEADER = Contact.hpp PhoneBook.hpp

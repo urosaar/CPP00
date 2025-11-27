@@ -1,8 +1,4 @@
 #include "PhoneBook.hpp"
-#include <iostream>
-#include <iomanip>
-#include <string>
-
 
 static std::string truncate10(const std::string &s)
 {
@@ -30,27 +26,34 @@ void PhoneBook::addContact(Contact c)
 
 void PhoneBook::seeContacts()
 {
-  std::cout << "-------------------------------------------" << std::endl;
-  std::cout << "|         this is your phone book         |" << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
-  std::cout << "|" << std::setw(10) << "Index" << "|"
-  << std::setw(10) << "First Name" << "|"
-  << std::setw(10) << "Last Name" << "|"
-  << std::setw(10) << "Nickname" << "|" << std::endl;
-  std::cout << "-------------------------------------------" << std::endl;
-  
-  for (int i = 0; i < totalContacts; i++) {
-    std::string fn = truncate10(contacts[i].inputFirstName());
+    std::cout << "--------------------------------------------" << std::endl;
+       std::cout << "|" << RED << "          This is your phone book          " << RESET << "|" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+
+    std::cout << "|"
+              << YELLOW << std::setw(10) << "Index" << RESET << "|"
+              << YELLOW << std::setw(10) << "First Name" << RESET << "|"
+              << YELLOW << std::setw(10) << "Last Name" << RESET << "|"
+              << YELLOW << std::setw(10) << "Nickname" << RESET << "|"
+              << std::endl;
+
+    std::cout << "--------------------------------------------" << std::endl;
+
+    for (int i = 0; i < totalContacts; i++)
+    {
+        std::string fn = truncate10(contacts[i].inputFirstName());
         std::string ln = truncate10(contacts[i].inputLastName());
         std::string nn = truncate10(contacts[i].inputNickname());
-        
+
         std::cout << "|" << std::setw(10) << i << "|"
-        << std::setw(10) << fn << "|"
-        << std::setw(10) << ln << "|"
-        << std::setw(10) << nn << "|" << std::endl;
-      }
-    std::cout << "-------------------------------------------" << std::endl;
+                  << std::setw(10) << fn << "|"
+                  << std::setw(10) << ln << "|"
+                  << std::setw(10) << nn << "|" << std::endl;
+    }
+
+    std::cout << "--------------------------------------------" << std::endl;
 }
+
 
 void PhoneBook::seeContactinfo(int index)
 {

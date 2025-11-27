@@ -1,31 +1,212 @@
 #include "PhoneBook.hpp"
-#include "Contact.hpp"
-#include <sstream> 
-     #include <ctype.h>
-static bool is_empty_field(const std::string &s)
+
+static bool readLine(const std::string &prompt, std::string &out)
 {
-    return s.empty();
+    std::cout << prompt;
+    if (!std::getline(std::cin, out))
+        return false;
+    return true;
 }
 
-bool isDigitsOnly(const std::string &s)
+static bool isDigitsOnly(const std::string &s)
 {
-    if (s.empty()) return false;
-    for (size_t i = 0; i < s.length(); i++)
-    {
-        if (s[i] < '0' || s[i] > '9')
+    if (s.empty())
+        return false;
+    for (size_t i = 0; i < s.length(); ++i)
+        if (!std::isdigit(static_cast<unsigned char>(s[i])))
             return false;
-    }
     return true;
 }
-bool isAllphabets(const std::string &s)
+
+static bool isAllalphabets(const std::string &s)
 {
-    if (s.empty()) return false;
-    for (size_t i = 0; i < s.length(); i++)
-    {
-        if(s[i] < 'A' || (s[i] > 'Z' && s[i] < 'a') || s[i] > 'z')
+    if (s.empty())
+        return false;
+    for (size_t i = 0; i < s.length(); ++i)
+        if (!std::isalpha(static_cast<unsigned char>(s[i])))
             return false;
-    }
     return true;
+}
+
+static bool promptFirstName(PhoneBook &pb, Contact &c)
+{
+    std::string input;
+    while (true)
+    {
+        if (!readLine("Enter First Name: ", input))
+            return false;
+        if (input.empty())
+        {
+            std::cout << "Field cannot be empty. Try again.\n";
+            continue;
+        }
+        if (!isAllalphabets(input))
+        {
+            std::cout << "Invalid first name. Alphabets only.\n";
+            continue;
+        }
+        c.TheFirstName(input);
+        PhoneBook::DuplicateField dup = pb.checkDuplicateField(c);
+        if (dup == PhoneBook::FIRST_NAME)
+        {
+            std::cout << "This First Name already exists. Try again.\n";
+            continue;
+        }
+        return true;
+    }
+}
+
+static bool promptLastName(PhoneBook &pb, Contact &c)
+{
+    std::string input;
+    while (true)
+    {
+        if (!readLine("Enter Last Name: ", input))
+            return false;
+        if (input.empty())
+        {
+            std::cout << "Field cannot be empty. Try again.\n";
+            continue;
+        }
+        if (!isAllalphabets(input))
+        {
+            std::cout << "Invalid last name. Alphabets only.\n";
+            continue;
+        }
+        c.TheLastName(input);
+        PhoneBook::DuplicateField dup = pb.checkDuplicateField(c);
+        if (dup == PhoneBook::LAST_NAME)
+        {
+            std::cout << "This Last Name already exists. Try again.\n";
+            continue;
+        }
+        return true;
+    }
+}
+
+static bool promptPhoneNumber(PhoneBook &pb, Contact &c)
+{
+    std::string input;
+    while (true)
+    {
+        if (!readLine("Enter Phone Number: ", input))
+            return false;
+        if (input.empty())
+        {
+            std::cout << "Field cannot be empty. Try again.\n";
+            continue;
+        }
+        if (!isDigitsOnly(input))
+        { 
+            std::cout << "Invalid phone number. Digits only.\n";
+            continue;
+        }
+        c.ThePhoneNumber(input);
+        PhoneBook::DuplicateField dup = pb.checkDuplicateField(c);
+        if (dup == PhoneBook::PHONE_NUMBER)
+        {
+            std::cout << "This phone number already exists. Try again.\n";
+            continue;
+        }
+        return true;
+    }
+}
+
+static bool promptNickname(PhoneBook &pb, Contact &c)
+{
+    std::string input;
+    while (true)
+    {
+        if (!readLine("Enter Nickname: ", input))
+            return false;
+        if (input.empty())
+        { 
+            std::cout << "Field cannot be empty. Try again.\n"; 
+            continue;
+        }
+        if (!isAllalphabets(input))
+        { 
+            std::cout << "Invalid nickname. Alphabets only.\n";
+            continue;
+        }
+
+        c.TheNickname(input);
+        PhoneBook::DuplicateField dup = pb.checkDuplicateField(c);
+        if (dup == PhoneBook::NICKNAME)
+        { 
+            std::cout << "This Nickname already exists. Try again.\n";
+            continue;
+        }
+        return true;
+    }
+}
+
+static bool promptDarkestSecret(Contact &c)
+{
+    std::string input;
+    while (true)
+    {
+        if (!readLine("Enter Darkest Secret: ", input))
+            return false;
+        if (input.empty())
+        { 
+            std::cout << "Field cannot be empty. Try again.\n";
+            continue;
+        }
+        c.TheDarkestSecret(input);
+        return true;
+    }
+}
+
+static bool handleAdd(PhoneBook &pb)
+{
+    Contact newContact;
+
+    if (!promptFirstName(pb, newContact))
+        return false;
+    if (!promptLastName(pb, newContact))
+        return false;
+    if (!promptPhoneNumber(pb, newContact))
+        return false;
+    if (!promptNickname(pb, newContact))
+        return false;
+    if (!promptDarkestSecret(newContact))
+        return false;
+    pb.addContact(newContact);
+    std::cout << "Contact added successfully.\n";
+    return true;
+}
+
+static bool handleSearch(PhoneBook &pb)
+{
+    if (pb.gettotalContacts() == 0)
+    {
+        std::cout << "PhoneBook is empty.\n";
+        return true;
+    }
+
+    pb.seeContacts();
+
+    std::string indexStr;
+    int index;
+    while (true)
+    {
+        if (!readLine("Enter index of the contact to view details: ", indexStr))
+            return false;
+        std::stringstream ss(indexStr);
+        if (!(ss >> index))
+        { 
+            std::cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+        if (index < 0 || index >= pb.gettotalContacts())
+        { 
+            std::cout << "Index out of range. Try again.\n";
+            continue;
+        }
+        pb.seeContactinfo(index);
+        return true;
+    }
 }
 
 int main()
@@ -35,171 +216,21 @@ int main()
 
     while (true)
     {
-        std::cout << "Enter a command (ADD, SEARCH, EXIT): ";
-        if (!std::getline(std::cin, command))
+        if (!readLine("Enter a command (ADD, SEARCH, EXIT): ", command))
             break;
         if (command == "ADD" || command == "add")
         {
-            Contact newContact;
-            std::string input;
-
-            while(true)
-            {
-                std::cout << "Enter First Name: ";
-                if (!std::getline(std::cin, input))
-                    break;
-                if (is_empty_field(input)) 
-                { 
-                    std::cout << "Field cannot be empty. Contact not saved.try again\n";
-                    continue;
-                }
-                if(!isAllphabets(input))
-                {
-                    std::cout << "Invalid first name. Must contain alphabets only. Try again.\n";
-                    continue;
-                }
-                newContact.TheFirstName(input);
-                PhoneBook::DuplicateField dup = phoneBook.checkDuplicateField(newContact);
-                if(dup != PhoneBook::NONE)
-                {
-                    if (dup == PhoneBook::FIRST_NAME)
-                    {
-                        std::cout << "This First Name already exists.\n";
-                        continue;
-                    }
-                }
-                break;
-            }
-            while(true)
-            {
-                std::cout << "Enter Last Name: ";
-                if (!std::getline(std::cin, input))
-                    break;
-                if (is_empty_field(input))
-                {
-                    std::cout << "Field cannot be empty. Contact not saved.try again \n";
-                    continue;
-                }
-                if(!isAllphabets(input))
-                {
-                    std::cout << "Invalid last name. Must contain alphabets only. Try again.\n";
-                    continue;
-                }
-                newContact.TheLastName(input);
-                // PhoneBook::DuplicateField dup = phoneBook.checkDuplicateField(newContact);
-                // if(dup != PhoneBook::NONE)
-                // {
-                //     if (dup == PhoneBook::LAST_NAME)
-                //     {
-                //         std::cout << "This Last Name already exists.\n";
-                //         continue;
-                //     }
-                // }
-                break;
-            }
-            while (true)
-            {
-                std::cout << "Enter Phone Number: ";
-                if (!std::getline(std::cin, input))
-                    break;
-                if (is_empty_field(input))
-                {
-                    std::cout << "Field cannot be empty. Try again.\n";
-                    continue;
-                }
-                if (!isDigitsOnly(input))
-                {
-                    std::cout << "Invalid phone number. Must contain digits only. Try again.\n";
-                    continue;
-                }
-                newContact.ThePhoneNumber(input);
-                PhoneBook::DuplicateField dup = phoneBook.checkDuplicateField(newContact);
-                if(dup != PhoneBook::NONE)
-                {
-                 if (dup == PhoneBook::PHONE_NUMBER)
-                {
-                        std::cout << "This phone number already exists.\n";
-                        continue;
-                    }
-                }
-                break; 
-            }
-            while(true)
-            {
-                std::cout << "Enter Nickname: ";
-                if (!std::getline(std::cin, input))
-                    break;
-                newContact.TheNickname(input);
-                if (is_empty_field(input))
-                { 
-                    std::cout << "Field cannot be empty. Contact not saved.try again\n";
-                    continue;
-                }
-                if(!isAllphabets(input))
-                {
-                    std::cout << "Invalid nickname. Must contain alphabets only. Try again.\n";
-                    continue;
-                }
-                newContact.TheNickname(input);
-                PhoneBook::DuplicateField dup = phoneBook.checkDuplicateField(newContact);
-                if(dup != PhoneBook::NONE)
-                {
-                    if (dup == PhoneBook::NICKNAME)
-                    {
-                        std::cout << "This NickName already exists.\n";
-                        continue;
-                    }
-                }
-                break;
-            }
-            while(true)
-            {
-                std::cout << "Enter Darkest Secret: ";
-                if (!std::getline(std::cin, input))
-                    break;
-                if (is_empty_field(input))
-                {
-                    std::cout << "Field cannot be empty. Contact not saved.try again\n";
-                    continue;
-                }
-                newContact.TheDarkestSecret(input);
-                phoneBook.addContact(newContact);
-                break;
-            }
-        } 
+            if (!handleAdd(phoneBook))
+            break;
+        }
         else if (command == "SEARCH" || command == "search")
         {
-            if (phoneBook.gettotalContacts() == 0)
-            {
-                std::cout << "PhoneBook is empty.\n";
-                continue;
-            }
-            phoneBook.seeContacts();
-            std::string indexStr;
-            int index;
-            while (true)
-            {
-            std::cout << "Enter index of the contact to view details: ";
-            if (!std::getline(std::cin, indexStr))
-                break;
-            std::stringstream ss(indexStr);
-            if (!(ss >> index))
-            {
-                std::cout << "Invalid input. Please enter a number.\n";
-                continue;
-            }
-            if (index < 0 || index >= phoneBook.gettotalContacts())
-            {
-                std::cout << "Index out of range. Try again.\n";
-                continue;
-            }
-            phoneBook.seeContactinfo(index);
+            if (!handleSearch(phoneBook))
             break;
-            }
         }
         else if (command == "EXIT" || command == "exit")
             break;
-        else 
+        else
             std::cout << "Invalid command. Please try again." << std::endl;
     }
     return 0;
